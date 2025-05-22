@@ -1,9 +1,135 @@
-import example.pepita
+import profesionales.*
+import solicitantes.*
 
-describe "group of tests for pepita" {
 
-  test "pepita has initial energy" {
-    assert.equals(100, pepita.energy())
+//Universidades
+const universidadSanMartin  = new Universidad( provincia = bsAs , honorarios = 3500)
+const universidadRosario    = new Universidad( provincia = santaFe , honorarios = 2800)
+const universidadCorrientes = new Universidad( provincia = corrientes , honorarios = 4200)
+const universidadHurlingham = new Universidad( provincia = bsAs , honorarios = 8800)
+
+//Profesionales
+const juana = new ProfesionalVinculado(universidad = universidadRosario)
+const melina = new ProfesionalDelLitoral(universidad = universidadCorrientes)
+const luciana = new ProfesionalLibre(universidad = universidadRosario , honorarios = 3200 , provincias = [santaFe , entreRios])
+const rocio = new ProfesionalLibre(universidad = universidadHurlingham , honorarios = 5000 , provincias = [santaFe , cordoba , bsAs])
+
+//Empresa
+const roboxion = new Empresa(honorarios = 3500)
+
+//Personas solicitantes
+const fulano = new PersonaSolicitante(provincia = jujuy)
+const pedro  = new PersonaSolicitante(provincia = cordoba)
+
+//Instituacion solicitante
+const clinica = new InstitucionSolicitante(universidades = [universidadHurlingham , universidadSanMartin])
+
+//Club solicitante
+const clubMoron = new ClubSolicitante(provincias = [bsAs , jujuy , santaFe])
+const clubMerlo = new ClubSolicitante(provincias = [salta , jujuy])
+
+describe "test etapa 1" {
+
+  method initialize() {
+  roboxion.contratarEmpleado(juana)
+  roboxion.contratarEmpleado(melina)
+  roboxion.contratarEmpleado(rocio)
+  roboxion.contratarEmpleado(luciana)
+}
+
+test "2 empleados de roboxion estudiaron en hurlingham y ninguno en san martin" {
+  assert.equals(2, roboxion.empleadosqueEstudiaronEnUnaUniversidad(universidadRosario))
+  assert.equals(1, roboxion.empleadosqueEstudiaronEnUnaUniversidad(universidadHurlingham))
+  assert.equals(0, roboxion.empleadosqueEstudiaronEnUnaUniversidad(universidadSanMartin))
+}
+
+test "la unica empleada cara es rocio" {
+  assert.equals(#{rocio}, roboxion.profesionalesCaros())
+}
+
+test "las universidades formadoras son las de Rosario, Corrientes y Hurlingham" {
+  assert.equals(#{universidadRosario , universidadCorrientes, universidadHurlingham}, roboxion.universidadesFormadoras())
+}
+
+test "la profesional mas barata es juana" {
+  assert.equals(juana, roboxion.empleadoMasBarato())
+}
+
+test "roboxion es de gente acotada" {
+  assert.that(roboxion.esGenteAcotada())
+}
+
+test "luciana ahora trabaja en 2 provincias mas por ende la empresa ya no es de gente acotada" {
+  luciana.agregarPronvincia(cordoba)
+  luciana.agregarPronvincia(corrientes)
+  assert.notThat(roboxion.esGenteAcotada())
+
+}
+
+}
+
+describe "test etapa 2" {
+
+  method initialize() {
+  roboxion.contratarEmpleado(juana)
+  roboxion.contratarEmpleado(melina)
+  roboxion.contratarEmpleado(rocio)
+  roboxion.contratarEmpleado(luciana)
+}
+
+test "roboxion puede satisfacer a pedro" {
+  assert.that(roboxion.puedeSatisfacerAlSolicitante(pedro))
+}
+
+test "roboxion no puede satisfacer a fulano" {
+  assert.notThat(roboxion.puedeSatisfacerAlSolicitante(fulano))
+}
+
+test "roboxion puede satisfacer a clubMoron" {
+  assert.that(roboxion.puedeSatisfacerAlSolicitante(clubMoron))
+}
+
+test "roboxion no puede satisfacer a clubMerlo" {
+  assert.notThat(roboxion.puedeSatisfacerAlSolicitante(clubMerlo))
+}
+
+test "roboxion puede satisfacer a la clinica" {
+  assert.that(roboxion.puedeSatisfacerAlSolicitante(clinica))
+}
+
+}
+
+describe "test etapa 3" {
+  test "juana cobra 8000 pesos y le dona la mitad a la universidad de rosario" {
+    juana.cobrarImporte(8000)
+    assert.equals(4000, universidadRosario.donacion())
   }
 
+  test "melina cobra 10000 pesos y le dona todo a la asociacion de profesionales del litoral" {
+    melina.cobrarImporte(10000)
+    assert.equals(10000, asociacionProfesionalesDelLitoral.donacion())
+  }
+
+  test "luciana cobra 10000 pesos y  le pasa 5000 a rocio quedandole 5000 a cada una" {
+    luciana.cobrarImporte(10000)
+    luciana.pasarDinero(5000, rocio)
+    assert.equals(5000, luciana.totalRecaudado())
+    assert.equals(5000, rocio.totalRecaudado())
+  }
+}
+
+describe "test etapa 4" {
+
+  method initialize() {
+  roboxion.contratarEmpleado(juana)
+  roboxion.contratarEmpleado(melina)
+  roboxion.contratarEmpleado(rocio)
+  roboxion.contratarEmpleado(luciana)
+  }
+  test "pedro solicita a roboxion, rocio puede ayudarlo, cobra 5000 y pedro entra a la lista de clientes (la lista tiene un solo cliente)" {
+    roboxion.darServicio(pedro)
+    assert.equals(5000, rocio.totalRecaudado())
+    assert.that(roboxion.seEncuentraElCliente(pedro))
+    assert.equals(1, roboxion.cuantosClientesTiene())
+  }
 }
